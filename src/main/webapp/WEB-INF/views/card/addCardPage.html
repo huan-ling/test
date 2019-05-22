@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="/static/js/jquery-1.4.2.js"></script>
+    <title>炉石传说</title>
+</head>
+<body>
+    <div>
+        <h1 align="center">卡牌新增</h1>
+        <form action="/service/card/add" method="POST">
+            <table align="center">
+                <tr>
+                    <td>卡牌名字</td>
+                    <td>
+                        <input type="text" name="name">
+                    </td>
+                </tr>
+                <tr>
+                    <td>卡牌职业</td>
+                    <td id="careerEnum">
+                    </td>
+                </tr>
+                <tr>
+                    <td>卡牌描述</td>
+                    <td>
+                        <textarea name="desc" cols="35" rows="8"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td>卡牌的类型</td>
+                    <td id="cardTypeEnum">
+
+                    </td>
+                </tr>
+                <tr id="manaValueTr">
+                    <td>卡牌的法力值</td>
+                    <td>
+                        <input type="text" name="manaValue">
+                    </td>
+                </tr>
+
+            </table>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        $(function(){
+            $.ajax({
+                    url: "/service/cardType/get",
+                    type: "get",
+                    success: function (result){
+                        if(result.code == 200){
+                            var cardTypeArr = JSON.parse(result.data);
+                            var html = "";
+                            for(var i=0;i<cardTypeArr.length;i++){
+                                html += "<input type='radio' name='cardTypeEnum' value='"+cardTypeArr[i].name+"'>"+cardTypeArr[i].desc;
+                            }
+                            $("#cardTypeEnum").html(html);
+
+                            $("#cardTypeEnum :input").click(function(){
+                                cardType(this);
+                            });
+                        }
+                    }
+            });
+            $.ajax({
+                    url: "/service/cardCareer/get",
+                    type: "get",
+                    success: function (result){
+                        if(result.code == 200){
+                            var cardCareer = JSON.parse(result.data);
+                            var html = "";
+                            for(var i=0;i<cardCareer.length;i++){
+                                html += "<input type='radio' name='careerEnum' value='"+cardCareer[i].name+"'>"+cardCareer[i].desc;
+                            }
+                            $("#careerEnum").html(html);
+
+                        }
+                    }
+            });
+        });
+
+        var cardType = function (obj){
+            var value = $(obj).attr("value");
+            var html = "";
+            switch (value){
+                case "RETINUE" :
+                    html +=" <tr>\n" +
+                        "                    <td>卡牌的种族</td>\n" +
+                        "                    <td id=\"cardRaceEnum\">\n" +
+                        "                        \n" +
+                        "                    </td>\n" +
+                        "                </tr>\n" +
+                        "                <tr>\n" +
+                        "                    <td>卡牌的攻击力</td>\n" +
+                        "                    <td>\n" +
+                        "                        <input type=\"text\" name=\"attackForce\">\n" +
+                        "                    </td>\n" +
+                        "                </tr>\n" +
+                        "                <tr>\n" +
+                        "                    <td>卡牌的血量</td>\n" +
+                        "                    <td>\n" +
+                        "                        <input type=\"text\" name=\"bloodVolume\">\n" +
+                        "                    </td>\n" +
+                        "                </tr>";
+                    cardRace();
+                    break;
+                case "MAGIC" :
+                    html += "";
+                    break;
+                case "HERO" :
+                    html += "<tr>\n" +
+                        "                    <td>护甲值</td>\n" +
+                        "                    <td>\n" +
+                        "                        <input type=\"text\" name=\"armor\">\n" +
+                        "                    </td>\n" +
+                        "                </tr>";
+                    break;
+                case "WEAPON" :
+                    html += " <tr>\n" +
+                        "                    <td>卡牌的攻击力</td>\n" +
+                        "                    <td>\n" +
+                        "                        <input type=\"text\" name=\"attackForce\">\n" +
+                        "                    </td>\n" +
+                        "                </tr>\n" +
+                        "                <tr>\n" +
+                        "                    <td>卡牌的耐久度</td>\n" +
+                        "                    <td>\n" +
+                        "                        <input type=\"text\" name=\"durability\">\n" +
+                        "                    </td>\n" +
+                        "                </tr>";
+                    break;
+                case "other":
+                    break;
+            }
+            $("#manaValueTr~tr").remove();
+            html += "<tr>\n" +
+                "                    <td>\n" +
+                "                        <input type=\"submit\">\n" +
+                "                    </td>\n" +
+                "                </tr>";
+            $("#manaValueTr").after(html);
+        }
+
+        var cardRace = function () {
+            $.ajax({
+                url: "/service/cardRace/get",
+                type: "get",
+                success: function (result){
+                    if(result.code == 200){
+                        var cardRaceArr = JSON.parse(result.data);
+                        var html = "";
+                        for(var i=0;i<cardRaceArr.length;i++){
+                            html += "<input type='radio' name='cardRaceEnum' value='"+cardRaceArr[i].name+"'>"+cardRaceArr[i].desc;
+                        }
+                        $("#cardRaceEnum").html(html);
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>

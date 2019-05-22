@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- 新 Bootstrap 核心 CSS 文件 -->
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <title>炉石传说</title>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8">
+            <h1 align="center">新增套牌</h1>
+            <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+            请选择职业
+            </button>
+            <a href="/card/index.html">
+                <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+                    开始游戏
+                </button>
+            </a>
+            <!-- 模态框（Modal） -->
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="myModalLabel">
+                                请选择职业
+                            </h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="btn-group" data-toggle="buttons">
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="career" value="DEROOY"> 德鲁伊
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="career" value="HUNTSMAN"> 猎人
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="career" value="MAGE"> 法师
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="career" value="PALADIN"> 圣骑士
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="career" value="PASTOR"> 牧师
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="career" value="STALKER"> 潜行者
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="career" value="SHAMAN"> 萨满祭司
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="career" value="WAELOCK"> 术士
+                                </label>
+                                <label class="btn btn-primary">
+                                    <input type="radio" name="career" value="WARRIOR"> 战士
+                                </label>
+                            </div>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+
+
+            <ul id="myTab" class="nav nav-tabs">
+
+            </ul>
+            <div id="myTabContent" class="tab-content">
+
+            </div>
+
+        </div>
+        <div class="col-sm-4" id="rightDiv">
+            <div style="margin-top: 10%">
+                <input type="text" name="name" value="我的套牌">
+                <p></p>
+                <button type="button" class="btn btn-success" onclick="submitInfo()">确定卡组</button>
+                <span class="label label-primary" id="labelNum">0/30</span>
+            </div>
+            <div style="margin-top: 10%">
+                <table class="table">
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        $("#myModal").modal("show");
+
+        // 加载所有职业的tab项
+        $.ajax({
+            url: "/service/cardCareer/get",
+            type: "get",
+            success: function (result) {
+                if (result.code == 200) {
+                    var data = JSON.parse(result.data);
+                    for (var i = 0; i < data.length; i++) {
+                        var $li = $("<li onclick='clickLi(this)' ><a href=\"#"
+                            + data[i].name + "\" data-toggle=\"tab\">" + data[i].desc + "</a></li>");
+                        $("#myTab").append($li);
+                    }
+                    // 加载第一个tab项的内容
+                    var $firstTab = $("#myTab li:first-child");
+                    $firstTab.addClass("active");
+                    var href = $firstTab.find("a").attr("href").substring(1);
+                    //service/card/getCareerAll?careerEnum=
+                    tabContent(href);
+                }
+            }
+        });
+
+        // 选择职业
+        $(".btn-group label").click(function () {
+            // 置空
+            deckCardNum = 0;
+            deckCardArr = [];
+            $("table tbody").empty();
+            $("#labelNum").text("0/30");
+
+            // 绑定单选按钮事件
+            var value = $(this).find(":radio").attr("value");
+            careerEnum = value;
+            $("#myTab li").each(function (index,li) {
+                var $li = $(li);
+                var href = $li.find("a").attr("href").substring(1);
+                if((href == value)
+                    || (href == "NEUTRALITY")){
+                    $li.css("display","");
+                    if(href == value){
+                        $li.addClass("active");
+                    }
+                }else {
+                    $li.css("display","none");
+                }
+            });
+            $("#myModal").modal("hide");
+            tabContent(value);
+        });
+
+    });
+
+    function clickLi(obj) {
+        $("li").removeClass("active");
+        var $li = $(obj);
+        $li.addClass("active");
+        var href = $li.find("a").attr("href").substring(1);
+        tabContent(href);
+    }
+
+    function tabContent(href) {
+        $("#myTabContent div").removeClass("active");
+        var $contentDiv = $("#myTabContent div[id='" + href + "']");
+        if (typeof $contentDiv != "undefined" && $("#myTabContent div[id='" + href + "']").text() != "") {
+            return;
+        }
+
+        var $showDiv = $("<div class=\"tab-pane fade in active\" id=\"" + href + "\"></div>");
+        $("#myTabContent").append($showDiv);
+
+        $.ajax({
+            url: "/service/card/getCareerAll?careerEnum=" + href,
+            type: "get",
+            success: function (result) {
+                if (result.code == 200) {
+                    var data = result.data;
+                    for (var i = 0; i < data.length; i++) {
+                        var $img = $("<img src='" + data[i].img + "' onclick='selectImg(this)' alt='" + JSON.stringify(data[i]) + "'></img>");
+                        $("#myTabContent div[id='" + href + "']").append($img);
+                    }
+                }
+            }
+        });
+    }
+
+    var deckCardArr = [];// 维护卡组的数组
+
+    var deckCardNum = 0;// 维护卡组的数量
+
+    var careerEnum = "";// 维护所选卡组的职业
+
+    /**
+     * 卡组中的对象
+     *
+     * @param id
+     * @param name
+     * @param num
+     * @param rarityEnum 卡组的稀有度 传说为 LEGEND
+     * @param manaValue 法力值
+     */
+    function DeckCard(cardId, name, num, rarityEnum, manaValue) {
+        this.cardId = cardId;
+        this.name = name;
+        this.num = num;
+        this.rarityEnum = rarityEnum;
+        this.manaValue = manaValue;
+    }
+
+    /**
+     * 选择对应的卡加入到卡组中
+     * @param obj
+     */
+    function selectImg(obj) {
+        if(deckCardNum>=30){
+            return;
+        }
+        var $img = $(obj);
+        $("#rightDiv");
+        var data = JSON.parse($img.attr("alt"));
+        var arrisExist = false;// 卡组中是否存在该卡牌
+        for (var i = 0; i < deckCardArr.length; i++) {
+            if (deckCardArr[i].cardId == data.id) {
+                // 卡组中存在该卡---是否超过加入上限
+                if (isExceedLimit(deckCardArr[i])) {
+                    return;// 不加入到数组中
+                }
+                deckCardArr[i].num++;
+                arrisExist = true;
+                modifyDeckCardShow(deckCardArr[i]);
+            }
+        }
+        if (!arrisExist) {
+            // 卡组中不存在该卡
+            var deckCard = new DeckCard(data.id, data.name, 1, data.rarityEnum, data.manaValue);
+            var trId = addDeckCardArr(deckCard);
+            addDeckCardShow(deckCard, trId);
+        }
+        deckCardNum++;
+        $("#labelNum").text(deckCardNum+"/30");
+    }
+
+    /**
+     * 卡牌是否超过卡组的上限
+     * @param data
+     * @returns {boolean}
+     */
+    function isExceedLimit(data) {
+        if (data.rarityEnum == "LEGEND" && data.num == 1) {
+            return true;
+        } else if (data.num == 2) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 增加卡组中的一项表格显示
+     * @param data 数据
+     * @param trId 下一个tr标签的id标识 trId =="" 直接添加
+     */
+    function addDeckCardShow(data, trId) {
+        var $tr = $("<tr id='card" + data.manaValue + "t" + data.cardId + "' onclick='removeCard(this)'></tr>");
+        var $td1 = $("<td>" + data.manaValue + "</td>");
+        var appendixStr = "";
+        if(data.rarityEnum == "LEGEND"){
+            appendixStr = "[传说]";
+        }
+        var $td2 = $("<td>" + data.name +appendixStr+ "</td>");
+        var $td3 = $("<td>" + data.num + "</td>");
+        $tr.append($td1).append($td2).append($td3);
+        if (trId == "") {
+            $("#rightDiv table tbody").append($tr);
+            return;
+        }
+        $("#card" + trId).before($tr);
+    }
+
+    function removeCard(obj) {
+        var $li = $(obj);
+        var cardId = $li.attr("id").split("t")[1];
+        var num = $li.find("td:nth-child(3)").text();
+        for(var i=0;i<deckCardArr.length;i++){
+            if(deckCardArr[i].cardId == cardId){
+                if(num == 1){
+                    // 移除
+                    deckCardArr.splice(i,1);
+                    $li.remove();
+                }else{
+                    deckCardArr[i].num = 1;
+                    $li.find("td:nth-child(3)").text(1);
+                }
+            }
+        }
+        deckCardNum--;
+        $("#labelNum").text(deckCardNum+"/30");
+    }
+
+    function modifyDeckCardShow(data) {
+        $("#card" + data.manaValue + "t" + data.cardId+" td:nth-child(3)").text(data.num);
+    }
+
+    /**
+     * 向卡组有序数组中添加数组，并返回相应的值
+     *
+     * @param data
+     * @returns {string}  manaValue+"t"+id 或 ""表示添加到数组最后的一个位置
+     */
+    function addDeckCardArr(data) {
+        for (var i = 0; i < deckCardArr.length; i++) {
+            if ((deckCardArr[i].manaValue == data.manaValue && deckCardArr[i].cardId > data.cardId)
+                || deckCardArr[i].manaValue > data.manaValue) {
+                var trId = deckCardArr[i].manaValue + "t" + deckCardArr[i].cardId;
+                deckCardArr.splice(i,0, data);
+                return trId;
+            }
+        }
+        deckCardArr.push(data);
+        return "";
+    }
+    
+    function submitInfo() {
+        if(deckCardNum != 30){
+            alert("卡牌数量必须是30张！");
+            return;
+        }
+        var name = $("#rightDiv :text").val();
+        var json = {
+            "name" : name,
+            "careerEnum" : careerEnum,
+            "deckCardList" : deckCardArr
+        }
+        $.ajax({
+            url: "/service/deckFacade/add",
+            type: "post",
+            //contentType: "application/x-www-form-urlencoded",
+            //data: json,
+            contentType: "application/json",
+            data: JSON.stringify(json),
+            success: function(result){
+                if(result.code == 200){
+                   alert("保存成功");
+                }else{
+                    alert("保存失败"+result.desc);
+                }
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

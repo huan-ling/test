@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<script type="text/javascript" src="/static/js/jquery-1.4.2.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
+	<link >
+	<title>炉石传说</title>
+</head>
+<body>
+<div id="ha">
+	<h1 align="center">卡牌爬虫新增</h1>
+	<div style="width: 120px; height: 759px;">
+
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var uid = $.cookie("uid");
+	if(uid != null){
+	    f(uid);
+	}
+
+	function f(uid){
+        // 初始化一个 WebSocket 对象
+        var ws = new WebSocket("ws://localhost:8080/service/ws?uid="+uid);
+
+        // 建立 web socket 连接成功触发事件
+        ws.onopen = function () {
+            // 使用 send() 方法发送数据
+            ws.send("{\n" +
+                "\t\"from\": null,\n" +
+                "\t\"fromName\": null,\n" +
+                "\t\"to\": \"22\",\n" +
+                "\t\"text\": null,\n" +
+                "\t\"date\": null\n" +
+                "}");
+            alert("数据发送中...");
+        };
+
+        // 接收服务端数据时触发事件
+        ws.onmessage = function (evt) {
+            var received_msg = evt.data;
+            alert("数据已接收..."+received_msg);
+        };
+
+        // 断开 web socket 连接成功触发事件
+        ws.onclose = function () {
+            alert("连接已关闭...");
+        };
+	}
+
+
+
+</script>
+</body>
+</html>

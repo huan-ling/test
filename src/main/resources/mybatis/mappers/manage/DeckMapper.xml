@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.blizzard.manage.mapper.DeckMapper">
+
+	<select id="getAllByUId" resultType="com.blizzard.manage.pojo.Deck">
+		select id,uid,`name`,career_enum from deck where uid=#{uid}
+	</select>
+
+	<select id="getByDId" resultType="com.blizzard.manage.pojo.Deck">
+		select id,`name`,career_enum careerEnum from deck where id=#{id}
+	</select>
+
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id">
+		insert into deck(uid,`name`,career_enum,create_time,update_time)
+		values(#{uid},#{name},#{careerEnum},now(),now())
+	</insert>
+
+	<delete id="deleteByIdAndUId">
+		delete from deck where id=#{deckId} and uid=#{uid}
+	</delete>
+</mapper>

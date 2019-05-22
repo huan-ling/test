@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="/static/js/jquery-1.4.2.js"></script>
+    <link rel="stylesheet" href="/static/css/card/getAllPage.css"/>
+    <title>炉石传说</title>
+</head>
+<body>
+    <div id="ha">
+        <h1 align="center">卡牌爬虫新增</h1>
+        <div style="width: 120px; height: 759px;">
+
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(function(){
+            $.ajax({
+                url: "/service/card/getAll",
+                type: "get",
+                success: function (result){
+                    if(result.code == 200){
+                        var arr = result.data;
+                        for(var i=0;i<arr.length;i++){
+                            var $span = $("<span display='block'><img src='"+arr[i].img+"'></img></span>");
+                            $("div div").append($span);
+                        }
+                    }
+                }
+            });
+        });
+
+       /* var browser_width  = $(document.body).width();
+        $("div div").css("width",browser_width);
+        $(window).resize(function() {
+            browser_width  = $(document.body).width();
+            $("div div").css("width",browser_width);
+        });*/
+
+
+    </script>
+</body>
+</html>

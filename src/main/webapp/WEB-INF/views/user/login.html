@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<script type="text/javascript" src="/static/js/jquery-1.4.2.js"></script>
+	<title>炉石传说</title>
+	<style>
+		h2{
+			text-align: center;
+			color: #990000;
+			margin-top: 190px;
+			margin-bottom: 30px;
+		}
+		table{
+			/*设置表格居中*/
+			margin: 0 auto;
+		}
+	</style>
+</head>
+<body>
+<h2>登陆</h2>
+<div>
+	<form method="post" action="/service/user/login">
+		<table>
+			<tr>
+				<td>姓名</td>
+				<td>
+					<input type="text" name="name">
+				</td>
+			</tr>
+			<tr>
+				<td>密码</td>
+				<td>
+					<input type="password" name="pwd">
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="center">
+					<input type="submit">
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+</body>
+</html>

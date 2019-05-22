@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.blizzard.manage.mapper.DeckCardMapper">
+
+	<insert id="batchInsert">
+		insert into deck_card(deck_id,card_id,num)
+		values
+		<foreach collection="deckCardList" separator="," item="item">
+			(#{deckId},#{item.cardId},#{item.num})
+		</foreach>
+	</insert>
+
+	<delete id="deleteByDId">
+		delete from deck_card where deck_id=#{deckId}
+	</delete>
+
+	<select id="getCardInfoByDId" resultType="com.blizzard.game.pojo.CardGameDto">
+		select
+			c.id,c.card_type_enum,c.career_enum,c.`name`,c.`desc`,c.mana_value,c.img,
+			c.rarity_enum,c.armor,c.card_race_enum,c.attack_force,c.blood_volume,d.num
+					,c.durability
+		from deck_card d
+		left join
+		card c
+		on
+		d.card_id=c.id
+		where
+			d.deck_id=#{deckId}
+	</select>
+</mapper>

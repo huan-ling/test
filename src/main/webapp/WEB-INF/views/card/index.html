@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+	<script src="/static/js/bootstrap.jquery.min.js"></script>
+	<script src="/static/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="/static/js/card/constant.js"></script>
+	<title>炉石传说</title>
+	<style>
+		#deck span,#begin-game span{
+			background-color: #ff4dca;
+			display: inline-block;
+			margin: 5px;
+			padding: 5px;
+			text-align: center;
+			width: 200px;
+			height: 80px;
+		}
+	</style>
+</head>
+<body>
+<div>
+	<div class="jumbotron text-center" style="margin-bottom:0">
+		<h2>我的套牌</h2>
+	</div>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-8" id="deck">
+			</div>
+			<div class="col-lg-4" style="margin-top: 50px;text-align: center">
+				<div id="begin-game">
+
+				</div>
+				<button type="button" class="btn btn-primary" onclick="beginGame()">开始游戏</button>
+			</div>
+		</div>
+		<div style="margin-top: 50px;text-align: center" class="col-lg-8">
+			<a href="/card/addDeck.html">
+				<button type="button" class="btn btn-primary">增加卡组</button>
+			</a>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$(function(){
+	    $.ajax({
+            url: "/service/deckFacade/getAll",
+            type: "get",
+            success: function(result){
+                if(result.code == 200){
+					var data = result.data;
+					for(var i=0;i<data.length;i++){
+						f(data[i]);
+					}
+                }
+            }
+		});
+	});
+
+	function f(data) {
+		var $span = $("<span onclick='selectDeck(this)'></span>");
+    	var $p1 = $("<p>"+data.name+"</p>");
+        var $p2 = $("<p>"+careerEnum[data.careerEnum]+"</p>");
+        var $button = $("<button onclick='removeDeck(this)' id='"+data.id+"' class=\"close\" aria-hidden=\"true\">&times;</button>");
+		$span.append($p1).append($p2).append($button);
+		$("#deck").append($span);
+	}
+
+    /**
+	 * 删除卡组
+     * @param obj
+     */
+	function removeDeck(obj){
+	    var deckId = $(obj).attr("id");
+        $.ajax({
+            url: "/service/deckFacade/delete",
+            type: "post",
+			data: "deckId="+deckId,
+            success: function(result){
+                if(result.code == 200){
+					$(obj).parent("span").remove();
+                    $("#begin-game").empty();
+                }else{
+             		alert("删除失败");
+				}
+            }
+        });
+	}
+
+	function selectDeck(obj) {
+		$("#begin-game").empty();
+		$("#begin-game").html($(obj).prop("outerHTML"));
+    }
+
+    function beginGame(){
+	    var deckId = $("#begin-game button").attr("id");
+        if(typeof deckId == "undefined" || deckId == ""){
+            alert("未选择卡组");
+            return;
+        }
+        var uid = $.cookie("uid");
+        if(typeof uid == "undefined" || uid == ""){
+	        alert("未登录");
+	        return ;
+		}
+        // 初始化一个 WebSocket 对象
+        var ws = new WebSocket("ws://"+window.location.host+"/service/ws?uid="+uid);
+
+        // 建立 web socket 连接成功触发事件
+        ws.onopen = function () {
+            // 使用 send() 方法发送数据
+			var message = {
+			    "dataTypeEnum" : "MATCH",
+				"data": deckId,
+			}
+			ws.send(JSON.stringify(message));
+            alert("数据发送中...");
+        };
+
+        // 接收服务端数据时触发事件
+        ws.onmessage = function (evt) {
+            var msg = JSON.parse(evt.data);
+            if(msg.dataTypeEnum == "MATCH"){
+                var options = {
+                    "path" : "/"
+				}
+                $.cookie("gameId",msg.data,options);
+                window.location = "/game/index.html";
+			}
+        };
+
+        // 断开 web socket 连接成功触发事件
+        ws.onclose = function () {
+            alert("连接已关闭...");
+        };
+	}
+</script>
+</body>
+</html>

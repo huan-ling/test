@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.blizzard.manage.mapper.CardMapper">
+
+	<insert id="add">
+		insert into card(card_type_enum,career_enum,`name`,`desc`,mana_value,img,rarity_enum,armor,card_race_enum,attack_force,blood_volume
+					,durability,create_time,update_time)
+		values(#{cardTypeEnum},#{careerEnum},#{name},#{desc},#{manaValue},#{img},#{rarityEnum},#{armor},#{cardRaceEnum},#{attackForce},
+		#{bloodVolume},#{durability},now(),now())
+	</insert>
+
+	<insert id="batchAdd">
+		insert into card(card_type_enum,career_enum,`name`,`desc`,mana_value,img,rarity_enum,armor,card_race_enum,attack_force,blood_volume
+					,durability,create_time,update_time)
+		values
+		<foreach collection="list" separator="," item="item">
+			(#{item.cardTypeEnum},#{item.careerEnum},#{item.name},#{item.desc},#{item.manaValue},#{item.img},#{rarityEnum},
+			#{item.armor},#{item.cardRaceEnum},#{item.attackForce},
+			#{item.bloodVolume},#{item.durability},now(),now())
+		</foreach>
+	</insert>
+
+	<select id="getAll" resultType="com.blizzard.common.entity.Card">
+		select * from card where version = 1
+	</select>
+
+	<select id="getCareerAll" resultType="com.blizzard.common.entity.Card">
+		select id,`name`,img,rarity_enum,mana_value from card where career_enum=#{careerEnum} and version = 1
+	</select>
+
+	<select id="filterLegendCard" resultType="java.lang.Integer">
+		select id from card where rarity_enum='LEGEND' and version = 1 and id in
+		<foreach collection="list" separator="," open="(" close=")" item="item">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="getById" resultType="com.blizzard.common.entity.Card">
+		select id,card_type_enum,career_enum,`name`,`desc`,mana_value,img,
+			rarity_enum,armor,card_race_enum,attack_force,blood_volume
+					,durability
+		from card
+		where id=#{id}
+	</select>
+
+</mapper>

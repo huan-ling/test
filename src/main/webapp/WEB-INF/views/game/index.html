@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <script src="/static/js/bootstrap.jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
+    <script type="text/javascript" src="/static/js/card/constant.js"></script>
+    <title>炉石传说</title>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        #up-hand, #down-hand {
+            background-color: #9d9d9d;
+            height: 100px;
+        }
+
+        #up, #down {
+            background-color: #edfcff;
+            height: 200px;
+        }
+
+        #interface {
+            background-color: #4cae4c;
+            height: 5px;
+        }
+
+        #myModalLabel img {
+            width: 30%;
+            height: 30%;
+        }
+
+        #up-hero, #down-hero {
+            margin: 0 auto;
+            background-color: #4fff45;
+            height: 80px;
+        }
+
+        #up-hero span, #down-hero span {
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        #up-hero-blood, #down-hero-blood, .blood {
+            color: #c7254e;
+        }
+
+        #up-scene, #down-scene {
+            height: 120px;
+        }
+
+        #up-scene img, #down-scene img {
+            height: 120px;
+        }
+
+        #up-hand img, #down-hand img, #cardModal img {
+            height: 100px;
+        }
+
+        /*#myModalLabel img{
+            opacity:0.5;
+            !*!/filter:alpha(opacity=70);*!
+        }*/
+        #up-can-mana, #down-can-mana {
+            color: #0000ff;
+        }
+
+    </style>
+</head>
+<body>
+<div>
+    <div class="container" style="margin-top: 50px;position: relative">
+        <div class="row">
+            <div class="col-lg-12">
+                <div id="up-hand">
+                </div>
+                <div id="up">
+                    <div id="up-hero">
+                        <span id="up-weapon">
+                            <div id="up-mana">1</div>
+                            <span id="up-attack">2</span>
+                            <span id="up-blood">3</span>
+                        </span>
+                        <span id="up-hero-self">
+                            <h3></h3>
+                        </span>
+                        <span id="up-hero-attack">
+
+                        </span>
+                        <span id="up-hero-blood">
+                            <h4>30</h4>
+                        </span>
+                        <span id="up-skill"></span>
+                        <span>
+                            <span>法力值:</span>
+                            <span id="up-can-mana"></span>
+                        </span>
+                    </div>
+                    <div id="up-scene">
+
+                    </div>
+                </div>
+                <p id="interface" style="text-align: right">
+                    <button type="button" class="btn" data-toggle="button" onclick="endRound(this)"> 等待回合开始</button>
+                </p>
+                <div id="down">
+                    <div id="down-scene">
+
+                    </div>
+                    <div id="down-hero">
+                        <span id="down-weapon">
+                            <div id="down-mana">1</div>
+                            <span id="down-attack">2</span>
+                            <span id="down-blood">3</span>
+                        </span>
+                        <span id="down-hero-self">
+                            <h3></h3>
+                        </span>
+                        <span id="down-hero-attack">
+
+                        </span>
+                        <span id="down-hero-blood">
+                            <h4>30</h4>
+                        </span>
+                        <span id="down-skill">
+                        </span>
+                        <span>
+                            <span>法力值:</span>
+                            <span id="down-can-mana"></span>
+                        </span>
+                    </div>
+                </div>
+                <div id="down-hand"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">请选择卡牌</h4>
+                </div>
+                <div class="modal-body" id="myModalLabel"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="chooseBeginCard()">确认选择</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+
+    <!-- 模态框（Modal）卡牌位置 作用对象 以及 发现的时候使用的静态框-->
+    <div class="modal fade" id="cardModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="cardModalTitle"></h4>
+                </div>
+                <div class="modal-body" id="cardModalLabel"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="cardModalButton">确认选择</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    var uid = $.cookie("uid");
+    var mana = 0;
+    var heroBlood = 0;
+    var upHeroBlood = 0;
+    // 维护场面的卡牌数量
+    var sceneLen = 0;
+    // 维护是否是自己的回合
+    var first = false;
+
+    $(function () {
+        beginGame();
+    });
+
+    function beginGame() {
+        var gameId = $.cookie("gameId");
+        if (typeof uid == "undefined" || uid == "") {
+            alert("未登录");
+            return;
+        }
+        if (typeof gameId == "undefined" || gameId == "") {
+            alert("游戏不存在");
+            return;
+        }
+        // 初始化一个 WebSocket 对象
+        var ws = new WebSocket("ws://" + window.location.host + "/service/ws?uid=" + uid);
+
+        // 建立 web socket 连接成功触发事件
+        ws.onopen = function () {
+            // 使用 send() 方法发送数据
+            var message = {
+                "dataTypeEnum": "BEGIN_GAME",
+                "data": gameId
+            }
+            ws.send(JSON.stringify(message));
+        };
+
+        // 接收服务端数据时触发事件
+        ws.onmessage = function (evt) {
+            var msg = JSON.parse(evt.data);
+            // -1或缺省是敌方 0是友方 isEnemy = true 表示由敌方推送的信息
+            var isEnemy = msg.to == 0 ? false : true;
+            switch (msg.dataTypeEnum) {
+                // 开始游戏
+                case "BEGIN_GAME":
+                    handleBeginGame(msg.data);
+                    break;
+                // 开始回合
+                case "BEGIN_ROUND":
+                    handleBeginRound(msg.data);
+                    break;
+                // 法力值的变更
+                case "MANA":
+                    handleMana(msg.data, isEnemy);
+                    break;
+                // 出牌
+                case "PLAY_CARD":
+                    handlePlayCard(msg.data);
+                    break;
+                // 卡牌信息变更
+                case "CARD_UPDATE":
+                    handleUpdateCard(msg.data, isEnemy);
+                    break;
+                // enmey手牌数量变更
+                case "CARD_NUM_UPDATE":
+                    updateHandCardNum(msg.data);
+                    break;
+                // 敌方英雄基本信息变更
+                case "HERO_INFO":
+                    updateEnemyHeroInfo(msg.data, isEnemy);
+                    break;
+            }
+        };
+
+        // 断开 web socket 连接成功触发事件
+        ws.onclose = function () {
+            alert("连接已关闭...");
+        };
+    }
+
+    /**
+     * 敌方英雄信息变更
+     * @param data 英雄信息
+     * @param isEnemy 敌方推送
+     * */
+    function updateEnemyHeroInfo(data, isEnemy) {
+        var armor = data.armor;
+        var showText = data.blood;
+        if(armor > 0){
+            showText = showText + "-" + armor;
+        }
+        if(isEnemy){
+            $("#down-hero-blood h4").text(showText);
+        }else{
+            $("#up-hero-blood h4").text(showText);
+        }
+    }
+
+    function handleBeginGame(data) {
+        data = JSON.parse(data);
+        Object.keys(data.heroMap).forEach(function (key) {
+            var hero = data.heroMap[key];
+            if (key == uid) {
+                mana = hero.curMana;
+                var handCardList = hero.handCardList;
+                // 0表示第一次开始
+                if (data.boundNum == 0) {
+                    $("#myModal").modal("show");
+                    for (var i = 0; i < handCardList.length; i++) {
+                        $("#myModalLabel").append($("<img onclick='selectCard(this)' id='" + handCardList[i].id + "' src='" + handCardList[i].img + "'></img>"));
+                    }
+                } else {
+                    showHand(handCardList);
+                    changeButtonStatus(hero.first);
+                }
+                heroBegin("down", hero);
+            } else {
+                heroBegin("up", hero);
+                setCardNum();
+            }
+        });
+    }
+
+    /**
+     * 赋值卡牌的初始初始值
+     * */
+    function setCardNum() {
+        $.ajax({
+            url: "/service/gameFacade/getCardNum",
+            type: "get",
+            success: function (result) {
+                if (result.code == 200) {
+                    updateHandCardNum(result.data.upHandNum);
+                }
+            }
+        });
+    }
+
+    /**
+     * 获得默认卡牌
+     * */
+    function getDefaultCard() {
+        return $("<img src='/static/img/card.jpg'/>");
+    }
+
+    /**
+     * 为英雄赋值初始值
+     */
+    function heroBegin(site, hero) {
+        $("#" + site + "-hero-self h3").text(careerEnum[hero.careerEnum]);
+        $("#" + site + "-skill").text(heroSkill[hero.careerEnum]);
+        $("#" + site + "-can-mana").text(hero.curMana);
+        $("#" + site + "-hero-blood h4").text(hero.bloodVolume);
+        var sceneArr = hero.sceneCardList;
+        if (site == "down") {
+            sceneLen = sceneArr.length;
+        }
+        for (var i = 0; i < sceneArr.length; i++) {
+            var $img = getSceneImg(sceneArr[i],site);
+            addSceneCard($img, site);
+        }
+    }
+
+    /**
+     * 选择卡牌
+     * @param obj
+     */
+    function selectCard(obj) {
+        var opactiy = $(obj).css("opacity");
+        if (opactiy == 1) {
+            $(obj).css("opacity", "0.5");
+        } else {
+            $(obj).css("opacity", "1");
+        }
+    }
+
+    function chooseBeginCard() {
+        $("#myModal").modal("hide");
+    }
+
+    $('#myModal').on('hide.bs.modal', function () {
+        // 发送初始选择卡牌数据
+        var cardIdArr = [];
+        $("#myModal img").each(function () {
+            if ($(this).css("opacity") != 1) {
+                cardIdArr.push($(this).attr("id"));
+            }
+        });
+
+        $.ajax({
+            url: "/service/gameFacade/choose",
+            type: "post",
+            data: "cardIds=" + cardIdArr,
+            success: function (result) {
+                if (result.code == 200) {
+                    showHand(result.data);
+                }
+            }
+        });
+    })
+
+    /**
+     * 显示手牌
+     * @param data
+     */
+    function showHand(data) {
+        // 处理手牌明暗度
+        updateManaHand();
+        for (var i = 0; i < data.length; i++) {
+            var cardMana = data[i].manaValue;
+            var $img = $("<img attack='" + data[i].attackForce + "' blood='" + data[i].bloodVolume + "' site='" + getRandomStr(5) + "'" +
+                " id='" + data[i].id + "' mana='" + cardMana + "' " +
+                "src='" + data[i].img + "' onclick='play(this)' cardTypeEnum='" + data[i].cardTypeEnum + "'/>");
+            if (cardMana > mana) {
+                $img.css("opacity", "0.5");
+            }
+            $("#down-hand").append($img);
+        }
+    }
+
+    /**
+     * 更新手牌法力值卡牌明暗度
+     * */
+    function updateManaHand() {
+        $("#down-hand img").each(function () {
+            var cardMana = $(this).attr("mana");
+            if (cardMana > mana) {
+                $(this).css("opacity", "0.5");
+            } else {
+                $(this).css("opacity", "1");
+            }
+        });
+    }
+
+    /**
+     * 获得对象所在场上的位置
+     *
+     * @param where hand or scene
+     * @param obj 那个对象
+     * */
+    function getSite(where,obj) {
+        var site;
+        $("#down-"+where+" img").each(function (index) {
+            if ($(this).attr("site") == $(obj).attr("site")) {
+                site = index;
+            }
+        });
+        return site;
+    }
+
+    /**
+     * 出牌
+     */
+    function play(obj) {
+        if (!first) {
+            return;
+        }
+        var cardMana = $(obj).attr("mana");
+        // 判断法力值是否允许
+        if (cardMana > mana) {
+            return;
+        }
+        var handSite = getSite("hand",obj);
+        var cardTypeEnum = $(obj).attr("cardTypeEnum");
+        var cardId = $(obj).attr("id");
+        if (cardTypeEnum == "RETINUE") {
+            // 给出卡牌在场面的位置
+            if (sceneLen >= 7) {
+                return;
+            } else if (sceneLen > 0) {
+                // 需要选择卡牌的位置
+                var labelArr = [];
+                $("#down-scene img").each(function (index) {
+                    var $label = $("<label class=\"btn btn-default \" onclick='changeLableClass(this)' site='" + index + "'>位置" + index + "</label>");
+                    var $img = $("<img src='" + $(this).attr("src") + "'/>");
+                    labelArr.push($label, $img);
+                });
+                var index = labelArr.length / 2;
+                var $label = $("<label class=\"btn btn-default active\" onclick='changeLableClass(this)' site='" + index + "'>位置" + index + "</label>");
+                labelArr.push($label);
+                modalShow("请选择卡牌的位置", labelArr, function () {
+                    var flag = false;
+                    $("#cardModalLabel label").each(function () {
+                        var site = -1;
+                        if ($(this).hasClass("active")) {
+                            site = $(this).attr("site");
+                        }
+                        if (site != -1) {
+                            flag = true;
+                            playAjax(obj, cardId, "", handSite, site);
+                            $("#cardModal").modal("hide");
+                        }
+                    });
+                    if (!flag) {
+                        alert("请选择卡牌的位置");
+                    }
+                });
+                return;
+            }
+        }
+        var imgSrc = $(obj).attr("src");
+        var labelArr = [$("<img src='" + imgSrc + "'/>")];
+        modalShow("请确定您选择的卡牌", labelArr, function () {
+            playAjax(obj, cardId, "", handSite, 0);
+            $("#cardModal").modal("hide");
+        });
+    }
+
+    /**
+     * 更改modal标签的选择
+     * */
+    function changeLableClass(obj) {
+        $("#cardModal label").removeClass("active");
+        $(obj).addClass("active");
+    }
+
+    function playAjax(obj, cardId, toSite, handSite, sceneSite) {
+        $.ajax({
+            url: "/service/gameFacade/play",
+            type: "post",
+            data: "cardId=" + cardId + "&toSite=" + toSite + "&handSite=" + handSite + "&sceneSite=" + sceneSite,
+            success: function (result) {
+                if (result.code == 200) {
+                    handlePlay(result, obj, cardId, handSite, sceneSite);
+                }
+            },
+        });
+    }
+
+    /**
+     * 处理modal的显示
+     * */
+    function modalShow(title, labelArr, bindFunction) {
+        $('#cardModal').modal({backdrop: 'static', keyboard: false});
+        $("#cardModal").modal("show");
+        $("#cardModalTitle").text(title);
+        $("#cardModalLabel").empty();
+        for (var i = 0; i < labelArr.length; i++) {
+            $("#cardModalLabel").append(labelArr[i]);
+        }
+        $("#cardModalButton").unbind("click");
+        $("#cardModalButton").bind("click", bindFunction);
+    }
+
+
+    function endRound(obj) {
+        if ($(obj).text() == "结束回合") {
+            // 结束回合触发
+            $.ajax({
+                url: "/service/gameFacade/endRound",
+                type: "post",
+                success: function (result) {
+                    if (result.code == 200) {
+                        var data = result.data;
+                        updateHandCardNum(data.drawCardNum);
+                        upHeroBlood = upHeroBlood - data.tiredValue;
+                        $("#up-hero-blood h").text(upHeroBlood);
+                        $("#up-can-mana").text(data.manaValue);
+                    }
+                }
+            });
+            changeButtonStatus(false);
+        }
+    }
+
+    function changeButtonStatus(showEnd) {
+        first = showEnd;
+        var $btn = $("#interface button");
+        if (showEnd) {
+            $btn.addClass("btn-info");
+            $btn.removeClass("btn-warn")
+            $btn.text("结束回合");
+        } else {
+            $btn.addClass("btn-warn");
+            $btn.removeClass("btn-info");
+            $btn.text("对方回合");
+        }
+    }
+
+    /**
+     * 处理开始回合
+     * @param data
+     */
+    function handleBeginRound(data) {
+        heroBlood = heroBlood - data.tiredValue;
+        $("#down-hero-blood h").text(heroBlood);
+        mana = data.manaValue;
+        $("#down-can-mana").text(mana);
+        showHand(data.cardGameDtoList);
+        changeButtonStatus(true);
+        updateSceneAttack();
+    }
+
+    /**
+     * 更新场面上的随从攻击状态图片显示
+     */
+    function updateSceneAttack() {
+        $("#down-scene img").each(function () {
+            if($(this).attr("attack") > 0){
+                $(this).css("opacity","1");
+            }
+        });
+    }
+
+    /**
+     * 处理打出牌后处理服务端响应
+     * @param result 服务器响应结果
+     */
+    function handlePlay(result, obj, cardId, handSite, sceneSite) {
+        if (result.data != null) {
+            var msg = result.data;
+            switch (msg.dataTypeEnum) {
+                case "MANA":
+                    handleMana(msg.data, false);
+                    successPlayCard(obj, sceneSite);
+                    break;
+                case "CHOOSE_CARD":
+                    handleChooseCard(msg.data, obj,cardId, handSite, sceneSite);
+                    break;
+                case "CARD_UPDATE":
+                    handleUpdateCard(msg.data);
+                    successPlayCard(obj,sceneSite);
+                    break;
+                default:
+                    break;
+            }
+        }else{
+            successPlayCard(obj,sceneSite);
+        }
+    }
+
+    /**
+     * 成功打出牌后做的操作
+     * */
+    function successPlayCard(obj, sceneSite) {
+        // 从手牌中移除卡牌
+        $(obj).remove();
+        $(obj).css("opacity","0.5");
+        // 打出牌成功后执行以下操作
+        var cardTypeEnum = $(obj).attr("cardTypeEnum");
+        if (cardTypeEnum == "RETINUE") { // 随从牌
+            addSceneCard($(obj), "down", sceneSite);
+            sceneLen++;
+        }
+        // 对法力值进修改
+        mana = mana - $(obj).attr("mana");
+        handleMana({
+            "mana": mana
+        });
+        // 手牌显示修改
+        updateManaHand();
+    }
+
+
+    /**
+     * 处理法力值
+     * @param data
+     * @param ws 是否是通过ws协议获得的enemy数据
+     * */
+    function handleMana(data, ws) {
+        var downMana = "down";
+        var anotherMana = "up";
+        if (ws) {
+            downMana = "up";
+            anotherMana = "down";
+        }
+        mana = data.mana;
+        $("#" + downMana + "-can-mana").text(mana);
+        if (typeof data.anotherMana == "number") {
+            $("#" + anotherMana + "-can-mana").text(data.anotherMana);
+        }
+    }
+
+
+    /**
+     * 更新敌方手牌显示数量
+     * @param num num<0 表示移除 num>0表示增加
+     * */
+    function updateHandCardNum(num) {
+        if(num > 0){
+            for(var i = 0;i < num; i++){
+                $("#up-hand").append(getDefaultCard());
+            }
+        }else{
+            var img = $("#up-hand img").get();
+            for (var i = 0; i < Math.abs(num); i++) {
+                img[i].remove();
+            }
+        }
+    }
+
+    /**
+     * 处理出牌信息
+     * @param data
+     */
+    function handlePlayCard(data) {
+        var card = data.cardGameDto;
+        addSceneCard(getSceneImg(card,"up"), "up", data.site);
+        var upMana = $("#up-can-mana").text() - card.manaValue;
+        handleMana({
+            "mana": upMana
+        }, true);
+    }
+
+    /**
+     * 获得场面图片的jquery对象
+     * */
+    function getSceneImg(card,site) {
+        var opacity = 0.5;
+        if(site == "up"){
+            opacity = 1;
+        }else{
+            if(card.canAttack == 1){
+                opacity = 1;
+            }else if(card.canAttack == 2){// 突袭
+                opacity = 0.8;
+            }
+            if(card.attackForce == 0){
+                opacity = 0.5;
+            }
+        }
+        return $("<img style='opacity: "+opacity+";' blood='" + card.bloodVolume +
+            "' attack='" + card.attackForce + "' src='" + card.img + "' site='"+getRandomStr(5)+"'/>");
+    }
+
+    /**
+     * 向场上增加随从
+     */
+    function addSceneCard($img, heroSite, sceneSite) {
+        if(heroSite == "down"){
+            $img.attr("onclick","attack(this)");
+        }
+        var $span = $("<span/>");
+        var $attackSpan = $("<span class='attack'>" + $img.attr("attack") + "</span>");
+        var $bloodSpan = $("<span class='blood'>" + $img.attr("blood") + "</span>");
+        $span.append($img).append($attackSpan).append($("<span>-</span>")).append($bloodSpan);
+        if (sceneSite == 0) {
+            $("#" + heroSite + "-scene").prepend($span);
+        } else if ($.isNumeric(sceneSite)) {
+            $("#" + heroSite + "-scene>span:nth-child(" + sceneSite + ")").after($span);
+        } else {
+            $("#" + heroSite + "-scene").append($span);
+        }
+    }
+
+    /**
+     * 处理选择卡牌的作用对象
+     * @param data
+     */
+    function handleChooseCard(data, obj,cardId, handSite, sceneSite) {
+        var labelArr = [];
+        switch (data.chooseObjectEnum) {
+            case "ENEMY_RETINUE":
+                // 敌方随从 -index-1
+                $("#up-scene img").each(function (index) {
+                    var site = -index - 3;
+                    $(this);
+                    labelArr.push($(this));
+                });
+                break;
+            case "":
+
+        }
+
+        var indexArr = data.indexList;
+        var enemyArr = data.enemyList;
+        var flag1 = pushImgArr(labelArr, data.enemyHeroIndex, true);
+        var flag2 = pushImgArr(labelArr, enemyArr, true);
+        if (flag1 || flag2) {
+            labelArr.push($("<p/>"));
+        }
+        pushHeroArr(labelArr, data.heroIndex, false);
+        pushImgArr(labelArr, indexArr, false);
+        setTimeout(function () {
+            modalShow("请选择卡牌的作用对象", labelArr, function () {
+                var toSite;
+                $("#cardModalLabel label").each(function () {
+                    if ($(this).hasClass("active")) {
+                        toSite = $(this).attr("toSite");
+                    }
+                });
+
+                $("#cardModalLabel img").each(function () {
+                    if ($(this).css("opacity") == 1) {
+                        toSite = $(this).attr("toSite");
+                    }
+                });
+                if (!$.isNumeric(toSite)) {
+                    alert("未选择作用对象");
+                    return;
+                }
+                $("#cardModal").modal("hide");
+                $.ajax({
+                    url: "/service/gameFacade/playPost",
+                    type: "post",
+                    data: "cardId=" + cardId + "&toSite=" + toSite + "&handSite=" + handSite + "&sceneSite=" + sceneSite,
+                    success: function (result) {
+                        if (result.code == 200) {
+                            handlePlay(result,obj,cardId,handSite,sceneSite);
+                        }
+                    }
+                });
+            });
+        }, 500);
+    }
+
+    function pushHeroArr(labelArr, heroIndex, isEnemyHero) {
+        if (heroIndex) {
+            if (isEnemyHero) {
+                labelArr.push($("<label class='btn btn-default' onclick='choose2Object(this)' toSite='-2'>敌方英雄</label>>"));
+            } else {
+                labelArr.push($("<label class='btn btn-default' onclick='choose2Object(this)' toSite='-1'>友方英雄</label>>"));
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function pushImgArr(labelArr, arr, isEnemyHero) {
+        if (!(arr instanceof Array)) {
+            return false;
+        }
+        for (var i = 0; i < arr.length; i++) {
+            var toSite = i;
+            if (isEnemyHero) {
+                toSite = -i - 3;
+            }
+            labelArr.push($("<img toSite='" + toSite + "' src='" + getImgSrcBySite(arr[i]) + "' " +
+                "onclick='choose2Object(this)' style='opacity: 0.5'/>"));
+        }
+        return true;
+    }
+
+    function choose2Object(obj) {
+        $("#cardModalLabel label").each(function () {
+            $(this).removeClass("active");
+        });
+        $("#cardModalLabel img").each(function () {
+            $(this).css("opacity", "0.5");
+        });
+        if ($(obj).get(0).tagName == "IMG") {
+            $(obj).css("opacity", "1");
+        } else {
+            $(obj).addClass("active");
+        }
+    }
+
+    function getImgSrcBySite(site) {
+        if (site < 0) {
+            return $("#up-scene img:eq(" + site + ")").attr("src");
+        } else {
+            return $("#down-scene img:eq(" + site + ")").attr("src");
+        }
+    }
+
+    /**
+     *  更新卡牌信息
+     */
+    function handleUpdateCard(data,ws) {
+        var site = data.site;
+        var card = data.cardGameDto;
+        var $span;
+        var down = "down";
+        var up = "up";
+        if(ws){
+            down = "up";
+            up = "down";
+        }
+        if (site >= 0) {
+            $span = $("#"+down+"-scene>span:eq(" + site + ")");
+        } else {
+            site = Math.abs(site + 3);
+            $span = $("#"+up+"-scene>span:eq(" + site + ")");
+        }
+        if(card.bloodVolume <=0){// 移除
+            $span.remove();
+            if(site >= 0){
+                sceneLen --;
+            }
+            return;
+        }
+        $span.find("span:eq(0)").text(card.attackForce);
+        $span.find("span:eq(2)").text(card.bloodVolume);
+    }
+
+    /**
+     * 攻击
+     */
+    function attack(obj) {
+        var opacity = $(obj).css("opacity");
+        if(opacity == 1){// 可以攻击
+            var lableArr =[];
+            var $label = $("<label class=\"btn btn-default \" onclick='changeOpacity(this,false)'>敌方英雄</label>");
+            lableArr.push($label);
+            $("#up-scene img").each(function (site) {
+                var img_src = $(this).attr("src");
+                var $img = $("<img src='"+img_src+"' onclick='changeOpacity(this,true)' site='"+site+"'/>");
+                $img.css("opacity",0.5);
+                lableArr.push($img);
+            });
+            modalShow("请选择攻击的对象",lableArr,function(){
+                var sceneSite = getSite("scene",obj);
+                var attackSite = getAttackSite();
+                if(typeof attackSite == "undefined"){
+                    alert("请选择攻击对象");
+                    return;
+                }
+                attackAjax(obj,sceneSite,attackSite);
+                $("#cardModal").modal("hide");
+            });
+        }else if(opacity == 0.8){// 突袭
+
+        }
+    }
+
+    /**
+     *  更改攻击时玩家选择的状态
+     *  @param obj 玩家点击对象
+     *  @param isImage 玩家点击的是否是图片
+     */
+    function changeOpacity(obj,isImage) {
+        if(isImage){
+            $("#cardModalLabel label").removeClass("active");
+            $("#cardModalLabel img").css("opacity",0.5);
+            $(obj).css("opacity",1);
+        }else{
+            $("#cardModalLabel label").addClass("active");
+            $("#cardModalLabel img").css("opacity",0.5);
+        }
+    }
+
+    /**
+     * 获取攻击的位置
+     * @return undefined 表示未做任何选择
+     * */
+    function getAttackSite() {
+        if($("#cardModalLabel label").hasClass("active")){
+            // 敌方英雄
+            return -1;
+        }else{
+            var attackSite;
+            $("#cardModalLabel img").each(function () {
+                if($(this).css("opacity") == 1){
+                    attackSite = $(this).attr("site");
+                }
+            });
+            return attackSite;
+        }
+    }
+
+    /**
+     * 攻击请求后端处理
+     * */
+    function attackAjax(obj,sceneSite,attackSite) {
+        $.ajax({
+            url: "/service/gameFacade/attack",
+            type: "post",
+            data: "sceneSite="+sceneSite+"&attackSite="+attackSite,
+            success: function (result) {
+                if (result.code == 200) {
+                    $(obj).css("opacity",0.5);
+                }
+            }
+        });
+    }
+
+    /**
+     *  获取随机字符串
+     * @returns {string}
+     */
+    function getRandomStr(len) {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for (var i = 0; i < len; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
+    }
+
+</script>
+</body>
+</html>
