@@ -1,0 +1,11 @@
+Ctrl+E 打开最近的文件
+CTRL+ALT+L 格式化
+CTRL+ALT+O 自动导包
+CTRL+ALT+V 自动补全变量
+CTRL+SHIFT+SPACE 自动提示代码
+CTRL+F12 显示当前类中的所有属性和方法
+CTRL+ALT+V 抽取变量
+CTRL+P 显示方法参数
+CTRL+SHIFT+上下 代码移动
+F9运行
+
